@@ -1,46 +1,60 @@
 <?php
-$file = "tamu.txt";
+$file = "todo.txt";
 
-if (isset($_POST['kirim'])) {
-    $nama = $_POST['nama'];
-    $pesan = $_POST['pesan'];
-
-    if (!empty($nama) && !empty($pesan)) {
-        $data = "Nama: " . $nama . " | Pesan: " . $pesan . "<br><hr>";
+if (isset($_POST['tambah'])) {
+    $tugas = $_POST['tugas'];
+    if (!empty($tugas)) {
+        $data = $tugas . "\n";
         file_put_contents($file, $data, FILE_APPEND);
-        echo "<script>alert('Pesan berhasil dikirim!');</script>";
-    } else {
-        echo "<script>alert('Nama dan pesan tidak boleh kosong!');</script>";
     }
+}
+
+if (isset($_GET['hapus'])) {
+    $index = $_GET['hapus'];
+    if (file_exists($file)) {
+        $daftar = file($file, FILE_IGNORE_NEW_LINES);
+        if (isset($daftar[$index])) {
+            unset($daftar[$index]);
+            file_put_contents($file, implode("\n", $daftar) . (count($daftar) > 0 ? "\n" : ""));
+        }
+    }
+    header("Location: " . strtok($_SERVER["REQUEST_URI"], "?"));
+    exit;
 }
 
 echo '<!DOCTYPE html>';
 echo '<html>';
 echo '<head>';
-echo '<title>Buku Tamu Sederhana</title>';
+echo '<title>To-Do List Sederhana</title>';
 echo '</head>';
 echo '<body style="font-family: Arial; margin: 30px;">';
 
-echo '<h2>Buku Tamu Digital</h2>';
+echo '<h2>To-Do List</h2>';
 
 echo '<form method="POST" action="">';
-echo '<label>Nama:</label><br>';
-echo '<input type="text" name="nama" required style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>';
-
-echo '<label>Pesan:</label><br>';
-echo '<textarea name="pesan" required style="width: 100%; height: 80px; padding: 8px; margin-bottom: 10px;"></textarea><br>';
-
-echo '<button type="submit" name="kirim" style="padding: 10px 15px; background: blue; color: white; border: none;">Kirim</button>';
+echo '<input type="text" name="tugas" placeholder="Tulis tugas baru..." required style="padding: 8px; width: 60%;">';
+echo '<button type="submit" name="tambah" style="padding: 8px 15px; background: green; color: white; border: none;">Tambah</button>';
 echo '</form>';
 
-echo '<hr style="margin: 30px 0;">';
+echo '<hr style="margin: 20px 0;">';
 
-echo '<h3>Daftar Tamu</h3>';
+echo '<h3>Daftar Tugas</h3>';
 
 if (file_exists($file)) {
-    echo file_get_contents($file);
+    $daftar = file($file, FILE_IGNORE_NEW_LINES);
+    if (count($daftar) > 0) {
+        echo '<ul>';
+        foreach ($daftar as $i => $item) {
+            if (trim($item) !== '') {
+                echo '<li>' . htmlspecialchars($item) . ' <a href="?hapus=' . $i . '" style="color: red; text-decoration: none;">[Hapus]</a></li>';
+            }
+        }
+        echo '</ul>';
+    } else {
+        echo 'Belum ada tugas.';
+    }
 } else {
-    echo "Belum ada tamu.";
+    echo 'Belum ada tugas.';
 }
 
 echo '</body>';
